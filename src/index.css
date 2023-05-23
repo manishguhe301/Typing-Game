@@ -1,0 +1,18 @@
+  @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400&display=swap');
+
+  body {
+    margin: 0;
+    font-family: 'Roboto Mono', monospace;
+    background-image: url('https://cdnx.livechatinc.com/website/uploads/2016/09/typing-speed-test@2x.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+
+  }
+
+  * {
+    font-size: 16px;
+    color: black;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
