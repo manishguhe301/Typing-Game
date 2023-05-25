@@ -39,45 +39,53 @@ const plainText = [
 const Compare = () => {
   const currentText = useSelector((store) => store.AppReducer.currentText);
 
-  const [inputtypes, setInputtypes] = useState('');
-  const [presenttchar, setPresenttchar] = useState(currentText[0]);
-  const [runt, setRunt] = useState(null);
-  const [all, setAll] = useState(1);
-  const [gltchars, setGltchars] = useState(0);
-  const [curc, setCurc] = useState({});
-  const [seconds, setSeconds] = useState(0);
-  const [times, setTimes] = useState(null);
-  const [allchar, setAllchar] = useState(0);
-  const [gltchar, setGltchar] = useState(0);
-  const [level, setLevel] = useState('plainText');
+  const [inputValue, setInputValue] = useState('');
+  const [currentCharacter, setCurrentCharacter] = useState(currentText[0]);
+  const [startTime, setStartTime] = useState(null);
+  const [totalCharacterTyped, setTotalCharacterTyped] = useState(1);
+  const [incorrectCharactersTyped, setIncorrectCharactersTyped] = useState(0);
+  const [characterStatus, setCharacterStatus] = useState({});
+  const [secondsElapsed, setSecondsElapsed] = useState(0);
+  const [timerId, setTimerId] = useState(null);
+  const [totalCharactersInFiveMinutes, setTotalCharactersInFiveMinutes] =
+    useState(0);
+  const [
+    incorrectCharactersInFiveMinutes,
+    setIncorrectCharactersInFiveMinutes,
+  ] = useState(0);
+  const [textLevel, setTextLevel] = useState('plainText');
 
   const dispatch = useDispatch();
 
-  if (seconds % 300 === 0 && seconds !== 0 && times) {
-    clearInterval(times);
-    setSeconds(0);
+  if (secondsElapsed % 300 === 0 && secondsElapsed !== 0 && timerId) {
+    clearInterval(timerId);
+    setSecondsElapsed(0);
     console.log('ll');
-    const match = (Date.now() - runt) / 1000;
-    const WPM = Math.round(allchar / 5 / (match / 60));
-    const NumWPM = Math.round((allchar - gltchar) / 5 / (match / 60));
+    const match = (Date.now() - startTime) / 1000;
+    const WPM = Math.round(totalCharactersInFiveMinutes / 5 / (match / 60));
+    const NumWPM = Math.round(
+      (totalCharactersInFiveMinutes - incorrectCharactersInFiveMinutes) /
+        5 /
+        (match / 60)
+    );
     const accuracy = Math.floor((NumWPM * 100) / WPM);
-    dispatch({ type: '5MIN', payload: { allchar, WPM } });
+    dispatch({ type: '5MIN', payload: { totalCharactersInFiveMinutes, WPM } });
   }
 
   function runtr() {
-    setAllchar(0);
-    setGltchar(0);
+    setTotalCharactersInFiveMinutes(0);
+    setIncorrectCharactersInFiveMinutes(0);
     let id = setInterval(() => {
-      setSeconds((seconds) => seconds + 1);
+      setSecondsElapsed((seconds) => seconds + 1);
     }, 1000);
-    setTimes(id);
+    setTimerId(id);
   }
 
   const handleTextChange = () => {
-    if (level === 'plainText') {
+    if (textLevel === 'plainText') {
       const randomValue = Math.floor(Math.random() * plainText.length);
 
-      setPresenttchar(plainText[randomValue][0]);
+      setCurrentCharacter(plainText[randomValue][0]);
 
       dispatch({ type: 'CHANGE', payload: plainText[randomValue] });
     }
@@ -85,57 +93,59 @@ const Compare = () => {
 
   const handleInput = (e) => {
     const value = e.target.value;
-    setInputtypes(value);
-    if (seconds === 0 && !times) {
+    setInputValue(value);
+    if (secondsElapsed === 0 && !timerId) {
       let id = setInterval(() => {
-        setSeconds((seconds) => seconds + 1);
+        setSecondsElapsed((seconds) => seconds + 1);
       }, 1000);
-      setTimes(id);
+      setTimerId(id);
     }
 
     let test = '';
     for (let i = 0; i < value.length; i++) {
       test = test + currentText[i];
-      if (value[i] === currentText[i] && curc[i] === undefined) {
-        curc[i] = true;
-        setCurc({ ...curc });
-      } else if (curc[i] === undefined) {
-        curc[i] = false;
-        setCurc({ ...curc });
+      if (value[i] === currentText[i] && characterStatus[i] === undefined) {
+        characterStatus[i] = true;
+        setCharacterStatus({ ...characterStatus });
+      } else if (characterStatus[i] === undefined) {
+        characterStatus[i] = false;
+        setCharacterStatus({ ...characterStatus });
       }
     }
 
-    if (value.length > inputtypes.length) {
-      setAll((pre) => pre + 1);
-      setAllchar(allchar + 1);
+    if (value.length > inputValue.length) {
+      setTotalCharacterTyped((pre) => pre + 1);
+      setTotalCharactersInFiveMinutes(totalCharactersInFiveMinutes + 1);
     }
 
     //  word per min
-    if (!runt) {
-      setRunt(Date.now());
+    if (!startTime) {
+      setStartTime(Date.now());
     }
 
     if (test !== value) {
-      setGltchars(gltchars + 1);
-      setGltchar(gltchar + 1);
+      setIncorrectCharactersTyped(incorrectCharactersTyped + 1);
+      setIncorrectCharactersInFiveMinutes(incorrectCharactersInFiveMinutes + 1);
     } else {
       if (value[value.length - 1] === currentText[value.length - 1]) {
-        setPresenttchar(currentText[value.length]);
+        setCurrentCharacter(currentText[value.length]);
       }
     }
 
     if (test === value && value.length === currentText.length) {
-      const match = (Date.now() - runt) / 1000;
-      const WPM = Math.round(all / 5 / (match / 60));
-      const NumWPM = Math.round((all - gltchars) / 5 / (match / 60));
+      const match = (Date.now() - startTime) / 1000;
+      const WPM = Math.round(totalCharacterTyped / 5 / (match / 60));
+      const NumWPM = Math.round(
+        (totalCharacterTyped - incorrectCharactersTyped) / 5 / (match / 60)
+      );
 
       const accuracy = Math.floor((NumWPM * 100) / WPM);
 
-      setInputtypes('');
-      setRunt(null);
-      setAll(1);
-      setCurc({});
-      setGltchars(0);
+      setInputValue('');
+      setStartTime(null);
+      setTotalCharacterTyped(1);
+      setCharacterStatus({});
+      setIncorrectCharactersTyped(0);
       dispatch({ type: 'SHOW', payload: { wpm: WPM, accuracy: accuracy } });
       handleTextChange();
     }
@@ -145,8 +155,8 @@ const Compare = () => {
     handleTextChange();
   }, []);
 
-  const minutes = Math.floor(seconds / 60);
-  const secondss = seconds % 60;
+  const minutes = Math.floor(secondsElapsed / 60);
+  const secondss = secondsElapsed % 60;
 
   return (
     <div>
@@ -171,7 +181,7 @@ const Compare = () => {
               height: 50,
             }}
           >
-            {presenttchar === ' ' ? 'Space' : presenttchar}
+            {currentCharacter === ' ' ? 'Space' : currentCharacter}
           </Button>
         </Box>
         <Box
@@ -180,7 +190,7 @@ const Compare = () => {
           }}
         >
           Minutes: {minutes} Seconds: {secondss}
-          {seconds === 0 && (
+          {secondsElapsed === 0 && (
             <Button
               variant='outlined'
               sx={{
@@ -209,7 +219,7 @@ const Compare = () => {
           },
         }}
         inputProps={{ style: { fontSize: 30 } }}
-        value={inputtypes}
+        value={inputValue}
         onChange={handleInput}
       />
     </div>
